@@ -21,31 +21,35 @@
  pin A0 and GND are connected to LDR
  */
 
-#include <LedControl.h>
-#include <Time.h>
-#include <Wire.h>
-#include <DS1307RTC.h>  // https://github.com/PaulStoffregen/DS1307RTC a basic DS1307 library that returns time as a time_t
-#include <Timezone.h>  // https://github.com/JChristensen/Timezone
-#include <Bounce2.h>
+#include <LedControl.h>  // https://www.pjrc.com/teensy/td_libs_LedControl.html  MAX7219 LED driver library
+#include <Time.h>        // https://github.com/PaulStoffregen/Time
+#include <Wire.h>        // Arduino built-in library
+#include <DS1307RTC.h>   // https://github.com/PaulStoffregen/DS1307RTC a basic DS1307 library that returns time as a time_t
+#include <Timezone.h>    // https://github.com/JChristensen/Timezone
+#include <Bounce2.h>     // https://github.com/thomasfredericks/Bounce2
 
- 
 #define BUTTON_PIN 2
+const byte pot_pin = 0;         // Photo-resistor pin
+
+#define MAX_DIN_PIN 8
+#define MAX_CLK_PIN 7
+#define MAX_LOAD_PIN 6
+#define MAX_NUM_OF_CHIPS 1  // number of chained MAX7219 chips
 
 // Instantiate a Bounce object
 Bounce debouncer = Bounce();
 
-LedControl lc=LedControl(8,7,6,1);
+// MAX7219 driver setup
+LedControl lc=LedControl(MAX_DIN_PIN,MAX_CLK_PIN,MAX_LOAD_PIN,MAX_NUM_OF_CHIPS);
 
-const byte pot_pin = 0;         // Photo-resistor pin
+// Photo-resistor setup
 double k = 0.01;                  // k value, was 0.04
 double average = 800;                // the average
-int i = 0;
 
+int i = 0;
 int update = 0;
 unsigned long updatemillis = 0;
-
 unsigned long knockmillis = 0;
-
 const int threshold = 20;
 int mode = 1;
 
@@ -56,7 +60,6 @@ Timezone usCT(usCDT, usCST);
 
 // If TimeChangeRules are already stored in EEPROM, comment out the three lines above and uncomment the line below.
 //Timezone usCT(100);       //assumes rules stored at EEPROM address 100
-
 
 TimeChangeRule *tcr;        //pointer to the time change rule, use to get TZ abbrev
 
@@ -78,13 +81,12 @@ void setup() {
   lc.setIntensity(0,8);  // set the brightness
   lc.clearDisplay(0);    // and clear the display
   
-  // Button and debounce setup
-  // Setup the button with an internal pull-up :
+  // Setup the button with an internal pull-up
   pinMode(BUTTON_PIN,INPUT_PULLUP);
 
-  // After setting up the button, setup the Bounce instance
+  // Button and debounce setup
   debouncer.attach(BUTTON_PIN);
-  debouncer.interval(10); // interval in ms  
+  debouncer.interval(10); // interval in ms
 }
 
 
